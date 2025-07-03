@@ -1,5 +1,5 @@
 # Example HTML snippet covering various heading scenarios
-test_html = '''
+TEST_HTML = '''
 <section id="root">
     <h1>Main Title</h1>
     <p>This is the introduction paragraph, explaining the document purpose.</p>
@@ -7,16 +7,21 @@ test_html = '''
     <p>Details of section one.</p>
     <h2>Section Two</h2>
     <p>Details of section two.</p>
+    <div role="heading" aria-level="3">ARIA Heading Level 3 as a child of node 2</div>
+    <p>Content under ARIA heading as well as the h2 tag.</p>
+    <div role="heading" aria-level="3">2nd ARIA Heading Level 3 as a child of node 2</div>
+    <p>Content under ARIA heading as well as the h2 tag.</p>
     <section id="wrapped">
         <h2>Already Wrapped Section</h2>
-        <p>Pre-wrapped content should not get double-wrapped.</p>
+        <p>Pre-wrapped content should not get double-wrapping.</p>
+        <div role="heading" aria-level="3">ARIA Heading inside wrapped</div>
+        <p>More details in wrapped section.</p>
     </section>
-    <div role="heading" aria-level="3">ARIA Heading Level 3</div>
-    <p>Content under ARIA heading.</p>
     <div role="heading" aria-level="2">ARIA Heading Level 2</div>
     <p>Content under ARIA heading level 2.</p>
 </section>
 '''
+
 
 from bs4 import BeautifulSoup, Tag
 
