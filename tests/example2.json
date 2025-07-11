@@ -1,0 +1,46 @@
+{
+  "title": "Main Title",
+  "text": "<p>Some Text init</p>",
+  "level": 1,
+  "subsections": [
+    {
+      "title": "Secondary Title But In a Section",
+      "text": "",
+      "level": 1,
+      "subsections": [
+        {
+          "title": "Sub Title",
+          "text": "<p>Some Text 1</p>",
+          "level": 2,
+          "subsections": []
+        }
+      ]
+    },
+    {
+      "title": "Secondary Title But In a Section",
+      "text": "",
+      "level": 2,
+      "subsections": [
+        {
+          "title": "Sub Title but with skipped one aria level",
+          "text": "<p>Some Text 1</p>",
+          "level": 4,
+          "subsections": []
+        }
+      ]
+    },
+    {
+      "title": "Another Section Title In a Section",
+      "text": "",
+      "level": 2,
+      "subsections": [
+        {
+          "title": "Sub Title but with skipped two aria levels",
+          "text": "<p>Some Text 2</p>",
+          "level": 5,
+          "subsections": []
+        }
+      ]
+    }
+  ]
+}

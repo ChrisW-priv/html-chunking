@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+*.pyo
+*~
+*.py[cod]
+.build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Rope project settings
+.ropeproject/
+
+# Pytest cache
+.pytest_cache/
+
+# Marker and custom caches or logs folders
+.marker-cache/
+marker-cache

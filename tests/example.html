@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { background: #f5f5f5; padding: 20px; }
+        .highlight { background: yellow; }
+        code { background: #f0f0f0; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>API Documentation</h1>
+        <p>Welcome to our comprehensive <a href="https://api.example.com">API documentation</a>. This guide will help you get started with our RESTful API.</p>
+
+        <div class="container">
+            <p>This content is wrapped in a container div but should still be included.</p>
+        </div>
+
+        <h2>Getting Started</h2>
+        <p>To begin using our API, you'll need to <strong>register for an API key</strong> and understand the basic concepts.</p>
+
+        <ul>
+            <li>Base URL: <code>https://api.example.com/v1</code></li>
+            <li>Authentication: <a href="/auth">API Key required</a></li>
+            <li>Rate limit: 1000 requests per hour</li>
+        </ul>
+
+        <h3>Authentication</h3>
+        <p>All API requests require authentication using your API key:</p>
+        <pre><code>curl -H "Authorization: Bearer YOUR_API_KEY" https://api.example.com/v1/users</code></pre>
+
+        <blockquote>
+            <p><em>Important:</em> Keep your API key secure and never expose it in client-side code.</p>
+        </blockquote>
+
+        <h2>Endpoints</h2>
+        <p>Our API provides several endpoints for different operations:</p>
+
+        <section>
+            <h3>User Management</h3>
+            <p>Manage user accounts and profiles.</p>
+
+            <h4>GET /users</h4>
+            <p>Retrieve a list of users.</p>
+
+            <h4>POST /users</h4>
+            <p>Create a new user account.</p>
+        </section>
+
+        <h3>Data Endpoints</h3>
+        <p>Access and manipulate data through these endpoints.</p>
+
+        <article>
+            <h4>Working with JSON</h4>
+            <p>All API responses are in <span class="highlight">JSON format</span>. Here's an example response:</p>
+            <pre><code>{
+  "status": "success",
+  "data": {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}</code></pre>
+        </article>
+
+        <h2>Error Handling</h2>
+        <p>Our API uses standard HTTP status codes and provides detailed error messages.</p>
+
+        <table border="1" style="border-collapse: collapse; width: 100%;">
+            <tr>
+                <th>Status Code</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>200</td>
+                <td>Success</td>
+            </tr>
+            <tr>
+                <td>400</td>
+                <td>Bad Request</td>
+            </tr>
+            <tr>
+                <td>401</td>
+                <td>Unauthorized</td>
+            </tr>
+            <tr>
+                <td>404</td>
+                <td>Not Found</td>
+            </tr>
+        </table>
+
+        <h2>Support</h2>
+        <p>If you need help, please:</p>
+        <ol>
+            <li>Check our <a href="/faq">FAQ section</a></li>
+            <li>Search the <a href="/docs">documentation</a></li>
+            <li>Contact us at <a href="mailto:support@example.com">support@example.com</a></li>
+        </ol>
+
+        <footer>
+            <p><small>Last updated: <time datetime="2023-12-01">December 1, 2023</time></small></p>
+            <address>
+                Example API Team<br>
+                <a href="https://example.com">https://example.com</a>
+            </address>
+        </footer>
+    </main>
+</body>
+</html>

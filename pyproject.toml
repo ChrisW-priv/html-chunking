@@ -1,0 +1,15 @@
+[project]
+name = "sandbox"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "db-dtypes>=1.4.3",
+    "google-cloud-bigquery>=3.34.0",
+    "jupyterlab>=4.4.4",
+    "marker-pdf>=1.8.1",
+    "pandas>=2.3.0",
+    "pytest>=7.0.0",
+]
