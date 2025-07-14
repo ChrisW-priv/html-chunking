@@ -3,14 +3,27 @@ import sys
 import argparse
 import hashlib
 from common import read_input, write_output
+from operator import le
 
 
-def shorten_text(text: str, max_elements: int = 2, has_children: bool = False) -> str:
+def shorten_text(text: str, max_elements: int = 2, subsections: list[dict[str, object]] | None = None) -> str:
     """Shorten text by splitting on lines and keeping at most max_elements, appending '...' if truncated."""
+    if max_elements == -1:
+        return text
+
+    if not text:
+        result = ""
+        for child in subsections or []:
+            result = "<p>Covered topics in this subsection:</p><ul>"
+            for child in subsections or []:
+                result += f"<li>{child.get('title', '')}</li>"
+            result += "</ul>"
+        return result
+
     DELIM = ""
     lines = text.splitlines()
     if len(lines) <= max_elements:
-        if has_children:
+        if subsections:
             lines.append("...")
         return DELIM.join(lines)
     shortened = lines[:max_elements]
@@ -18,19 +31,21 @@ def shorten_text(text: str, max_elements: int = 2, has_children: bool = False) -
     return DELIM.join(shortened)
 
 
-def generate_section_digest(node: dict[str, object]) -> dict[str, object]:
+def generate_section_digest(node: dict[str, str | list[dict]]) -> dict[str, object]:
     """Generate a section digest string for a node, including its title/text and immediate children."""
+    text = node.get("text", "")
     section_digest = {
         "title": node.get("title", ""),
-        "text": node.get("text", ""),
+        "text": text,
         "subsections": []
     }
     # Include immediate children
-    for child in node.get("subsections", []):  # type: ignore
+    for child in node.get("subsections", []):
         child_title = child.get("title", "")
         child_text = child.get("text", "")
-        child_has_children = child.get("subsections", False)
-        short_text = shorten_text(child_text, 1, child_has_children)
+        child_subsections = child.get("subsections")
+        length = 1 if text else -1
+        short_text = shorten_text(child_text, length, child_subsections)
         section_digest["subsections"].append({
             "title": child_title,
             "text": short_text
