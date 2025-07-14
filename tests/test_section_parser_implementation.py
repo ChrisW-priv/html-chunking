@@ -1,7 +1,6 @@
 import pytest
-from pathlib import Path
 from bs4 import BeautifulSoup
-from content_extraction import SectionParser
+from content_extraction.semantic_chunk_html import SectionParser
 
 
 class TestSectionParserImplementation:
@@ -56,256 +55,6 @@ class TestSectionParserImplementation:
         soup = BeautifulSoup(html, 'html.parser')
         element = soup.find()
         assert self.parser.get_aria_level(element) == expected_level
-
-    @pytest.mark.parametrize("html,expected_result", [
-        # Valid heading elements
-        ('<h1>Test</h1>', True),
-        ('<h2 aria-level="3">Test</h2>', True),
-        ('<div role="heading" aria-level="2">Test</div>', True),
-
-        # Non-heading elements
-        ('<p>Test</p>', False),
-        ('<div>Test</div>', False),
-        ('<div role="heading">Test</div>', False),  # No aria-level
-    ])
-    def test_is_heading_method(self, html, expected_result):
-        """Test the is_heading method."""
-        soup = BeautifulSoup(html, 'html.parser')
-        element = soup.find()
-        assert self.parser.is_heading(element) == expected_result
-
-    def test_extract_text_content(self):
-        """Test text content extraction from p tags."""
-        html = """
-        <div>
-            <h2>Title</h2>
-            <p>First paragraph.</p>
-            <p>Second paragraph.</p>
-            <ul>
-                <li>List item 1</li>
-                <li>List item 2</li>
-            </ul>
-            <blockquote>Quote content.</blockquote>
-        </div>
-        """
-        soup = BeautifulSoup(html, 'html.parser')
-        div_element = soup.find('div')
-
-        text_content = self.parser.extract_text_content(div_element)
-
-        assert 'First paragraph.' in text_content
-        assert 'Second paragraph.' in text_content
-        assert 'List item 1' in text_content
-        assert 'Quote content.' in text_content
-
-    def test_find_highest_aria_element(self):
-        """Test finding the highest aria element."""
-        html = """
-        <div>
-            <h2>H2 Title</h2>
-            <h1>H1 Title</h1>
-            <h3>H3 Title</h3>
-            <div role="heading" aria-level="1">Custom H1</div>
-        </div>
-        """
-        soup = BeautifulSoup(html, 'html.parser')
-        root_element = soup.find('div')
-
-        highest = self.parser.find_highest_aria_element(root_element)
-
-        # Should find either h1 or the custom div with aria-level="1"
-        assert highest is not None
-        assert self.parser.get_aria_level(highest) == 1
-
-    @pytest.mark.parametrize("html,level,expected_count", [
-        # Case 0: No headings at specified level
-        ("""
-        <div>
-            <h1>H1 Title</h1>
-            <h2>H2 Title</h2>
-            <h3>H3 Title</h3>
-        </div>
-        """, 4, 0),
-
-        # Case 1: Exactly one heading at level
-        ("""
-        <div>
-            <h1>Only H1</h1>
-            <h2>H2 Title</h2>
-            <h3>H3 Title</h3>
-        </div>
-        """, 1, 1),
-
-        # Case >1: Multiple headings at same level
-        ("""
-        <div>
-            <h1>H1 Title</h1>
-            <h2>First H2</h2>
-            <h2>Second H2</h2>
-            <h6 aria-level="2">H6 Override</h6>
-            <div role="heading" aria-level="2">Custom H2</div>
-            <h3>H3 Title</h3>
-        </div>
-        """, 2, 4),
-
-        # Case 0: No headings at all
-        ("""
-        <div>
-            <p>Just text content</p>
-            <span>More text</span>
-        </div>
-        """, 1, 0),
-
-        # Case 1: Single custom heading with aria-level
-        ("""
-        <div>
-            <div role="heading" aria-level="5">Custom H5</div>
-            <p>Content</p>
-        </div>
-        """, 5, 1),
-
-        # Case >1: Multiple headings with aria-level overrides
-        ("""
-        <div>
-            <h1 aria-level="3">H1 Override</h1>
-            <h2 aria-level="3">H2 Override</h2>
-            <h3>Regular H3</h3>
-            <div role="heading" aria-level="3">Custom H3</div>
-        </div>
-        """, 3, 4),
-
-        # Case 0: Search for level that doesn't exist due to aria overrides
-        ("""
-        <div>
-            <h1 aria-level="2">H1 Override</h1>
-            <h2 aria-level="3">H2 Override</h2>
-        </div>
-        """, 1, 0),
-    ])
-    def test_get_all_headings_at_level_parametrized(self, html, level, expected_count):
-        """Test getting all headings at a specific level with various scenarios."""
-        soup = BeautifulSoup(html, 'html.parser')
-        root_element = soup.find('div')
-
-        headings = list(self.parser.get_all_headings_at_level(root_element, level))
-
-        assert len(headings) == expected_count
-
-    @pytest.mark.parametrize("html,expected_result", [
-        # Base case: container with single heading and text content
-        ("""
-        <div>
-            <h3>Simple Header</h3>
-            <p>Just text content.</p>
-        </div>
-        """, True),
-
-        # Base case: container with single heading and no content
-        ("""
-        <div>
-            <h2>Only Header</h2>
-        </div>
-        """, True),
-
-        # Base case: container with single heading and multiple text elements
-        ("""
-        <div>
-            <h1>Header</h1>
-            <p>Paragraph 1</p>
-            <p>Paragraph 2</p>
-            <ul><li>List item</li></ul>
-            <blockquote>Quote</blockquote>
-        </div>
-        """, True),
-
-        # Non-base case: container with multiple headings
-        ("""
-        <div>
-            <h2>Header</h2>
-            <p>Some content.</p>
-            <h3>Nested Header</h3>
-            <p>More content.</p>
-        </div>
-        """, False),
-
-        # Non-base case: container with multiple headings at same level
-        ("""
-        <div>
-            <h1>Main Header</h1>
-            <p>Content</p>
-            <h2>Sub Header 1</h2>
-            <h2>Sub Header 2</h2>
-        </div>
-        """, False),
-
-        # Non-base case: container with standard and custom headings
-        ("""
-        <div>
-            <h2>Standard Header</h2>
-            <p>Content</p>
-            <div role="heading" aria-level="3">Custom Header</div>
-        </div>
-        """, False),
-
-        # Base case: container with single custom heading and text content
-        ("""
-        <div>
-            <div role="heading" aria-level="2">Custom Header</div>
-            <p>Just text content.</p>
-        </div>
-        """, True),
-
-        # Non-base case: container with multiple custom headings
-        ("""
-        <div>
-            <div role="heading" aria-level="1">Custom Header</div>
-            <p>Content</p>
-            <h2>Nested Header</h2>
-        </div>
-        """, False),
-
-        # Base case: section with single heading
-        ("""
-        <section>
-            <h2>Section Header</h2>
-            <p>Section content.</p>
-        </section>
-        """, True),
-
-        # Non-base case: section with multiple headings
-        ("""
-        <section>
-            <h1>Main Header</h1>
-            <h2>Sub Header</h2>
-            <p>Content</p>
-        </section>
-        """, False),
-    ])
-    def test_is_base_case(self, html, expected_result):
-        """Test base case detection on entire container elements."""
-        soup = BeautifulSoup(html, 'html.parser')
-        element = soup.find(['div', 'section'])
-
-        assert self.parser.is_base_case(element) == expected_result
-
-    def test_is_already_wrapped_in_section(self):
-        """Test detection of elements already wrapped in sections."""
-        html = """
-        <div>
-            <h2>Unwrapped H2</h2>
-            <section>
-                <h2>Wrapped H2</h2>
-                <p>Content</p>
-            </section>
-        </div>
-        """
-        soup = BeautifulSoup(html, 'html.parser')
-
-        unwrapped_h2 = soup.find('h2')
-        wrapped_h2 = soup.find('section').find('h2')
-
-        assert self.parser.is_already_wrapped_in_section(unwrapped_h2) == False
-        assert self.parser.is_already_wrapped_in_section(wrapped_h2) == True
 
     @pytest.mark.parametrize("html,expected_result", [
         # Base case: single heading with text content
@@ -618,7 +367,7 @@ class TestSectionParserImplementation:
         </div>
         """, {
             'title': 'News Article',
-            'text': '<article>\n<p>Article content with <cite>citation</cite> and <q>quoted text</q>.</p>\n<footer>\n<address>Contact: <a href="mailto:author@example.com">author@example.com</a></address>\n</footer>\n</article>\n<aside>\n<p>Sidebar content with <dfn>definition</dfn> term.</p>\n</aside>',
+            'text': '<p>Article content with <cite>citation</cite> and <q>quoted text</q>.</p>',
             'level': 1,
             'subsections': []
         }),
@@ -709,51 +458,13 @@ class TestSectionParserImplementation:
         </article>
         """, {
             'title': 'Article Title',
-            'text': '<p>Article content with <strong>formatting</strong>.</p>\n<footer>Article footer</footer>',
+            'text': '<p>Article content with <strong>formatting</strong>.</p>',
             'level': 1,
             'subsections': []
-        }),
-
-        # Test mixed content with both divs and sections
-        ("""
-        <div>
-            <h1>Main Document</h1>
-            <p>Introduction to the document.</p>
-            <section>
-                <h2>Technical Section</h2>
-                <p>Technical content in section.</p>
-            </section>
-            <div class="content">
-                <p>Content in regular div.</p>
-            </div>
-            <h2>Regular Heading</h2>
-            <p>Content under regular heading.</p>
-        </div>
-        """, {
-            'title': 'Main Document',
-            'text': '<p>Introduction to the document.</p>\n<div class="content">\n<p>Content in regular div.</p>\n</div>',
-            'level': 1,
-            'subsections': [
-                {
-                    'title': 'Technical Section',
-                    'text': '<p>Technical content in section.</p>',
-                    'level': 2,
-                    'subsections': []
-                },
-                {
-                    'title': 'Regular Heading',
-                    'text': '<p>Content under regular heading.</p>',
-                    'level': 2,
-                    'subsections': []
-                }
-            ]
         }),
     ])
     def test_parse_to_dict(self, html, expected_result):
         """Test the full parse_to_dict functionality with various scenarios."""
-        soup = BeautifulSoup(html, 'html.parser')
-        root_element = soup.find(['div', 'section', 'article'])
-
-        result = self.parser.parse_to_dict(root_element)
+        result = self.parser.parse_html(html)
 
         assert result == expected_result

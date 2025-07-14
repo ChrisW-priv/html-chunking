@@ -4,7 +4,7 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from content_extraction import SectionParser
+from content_extraction.semantic_chunk_html import SectionParser
 
 
 def load_json(file_path):
