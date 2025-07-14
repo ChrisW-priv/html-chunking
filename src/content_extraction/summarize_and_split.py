@@ -3,7 +3,7 @@ import sys
 import argparse
 import hashlib
 import json
-from common_std_io import read_input, write_output
+from common_std_io import read_input, write_stream_of_obj
 
 
 def shorten_text(text: str, max_elements: int = 2, subsections: list[dict[str, object]] | None = None) -> str:
@@ -99,7 +99,7 @@ def main():
         content = read_input(args.input)
         data = json.loads(content)
         nodes = process_node(data, parent_digest_hash=None)
-        write_output(nodes, args.output)
+        write_stream_of_obj(nodes, args.output)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1

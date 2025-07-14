@@ -32,6 +32,7 @@ import sys
 import argparse
 from common_std_io import read_input, write_output
 from semantic_chunk_html import SectionParser
+import json
 
 
 def main():
@@ -96,7 +97,7 @@ Examples:
         result = parser.parse_html(html_content)
 
         # Write output
-        write_output(result, args.output, args.pretty)
+        write_output(json.dumps(result), args.output)
 
         if args.verbose:
             print("Processing completed successfully", file=sys.stderr)

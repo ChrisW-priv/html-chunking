@@ -19,15 +19,23 @@ def read_input(input_file: str | None = None) -> str:
     return content
 
 
-def write_output(
-    nodes: list[dict[str, object]], output_file: str | None = None
-) -> None:
-    """Write the list of node dicts as JSON Lines to a file or stdout."""
+def write_output( output: str, output_file: str | None = None ) -> None:
     try:
         out_stream = open(output_file, 'w', encoding='utf-8') if output_file else sys.stdout
-        for node in nodes:
-            out_stream.write(json.dumps(node, ensure_ascii=False))
-            out_stream.write("\n")
+        out_stream.write(output)
+    except Exception as e:
+        raise RuntimeError(f"Error writing output: {e}")
+    finally:
+        if output_file:
+            out_stream.close()
+
+
+def write_stream_of_obj(obj_stream, output_file: str | None = None):
+    try:
+        out_stream = open(output_file, 'w', encoding='utf-8') if output_file else sys.stdout
+        for obj in obj_stream:
+            out_stream.write(json.dumps(obj))
+            out_stream.write('\n')
     except Exception as e:
         raise RuntimeError(f"Error writing output: {e}")
     finally:
