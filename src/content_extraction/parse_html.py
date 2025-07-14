@@ -31,7 +31,7 @@ Examples:
 import sys
 import argparse
 from common_std_io import read_input, write_output
-from semantic_chunk_html import SectionParser
+from semantic_chunk_html import HTMLSectionParser
 import json
 
 
@@ -93,8 +93,8 @@ Examples:
         html_content = read_input(args.input_file)
 
         # Parse HTML
-        parser = SectionParser()
-        result = parser.parse_html(html_content)
+        parser = HTMLSectionParser()
+        result = parser.parse_sections(html_content)
 
         # Write output
         write_output(json.dumps(result), args.output)
@@ -105,9 +105,9 @@ Examples:
     except KeyboardInterrupt:
         print("\nOperation cancelled by user", file=sys.stderr)
         return 1
-    # except Exception as e:
-    #     print(f"Unexpected error: {e}", file=sys.stderr)
-    #     return 1
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == '__main__':

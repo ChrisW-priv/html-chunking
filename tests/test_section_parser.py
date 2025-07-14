@@ -2,9 +2,7 @@ import json
 import pytest
 from pathlib import Path
 
-from bs4 import BeautifulSoup
-
-from content_extraction.semantic_chunk_html import SectionParser
+from content_extraction.semantic_chunk_html import HTMLSectionParser
 
 
 def load_json(file_path):
@@ -24,10 +22,11 @@ def read_html(file_path):
     ("example2.html", "example2.json"),
 ])
 def test_example_html(source_filename, expected_result_filename):
-    parser = SectionParser()
+    parser = HTMLSectionParser()
     input_file_path = str(Path(__file__).parent / source_filename)
     html = read_html(input_file_path)
-    result = parser.parse_html(html)
+    result = parser.parse_sections(html)
+    print(json.dumps(result, indent=2))
     expected_result = load_json(Path(__file__).parent / expected_result_filename)
 
     assert result == expected_result
