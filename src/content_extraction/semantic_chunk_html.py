@@ -1,5 +1,6 @@
 from typing import Generator
 from bs4 import BeautifulSoup
+import copy
 
 
 def find_root_element(soup):
@@ -34,12 +35,11 @@ class SectionParser:
 
     def parse_html(self, html: str) -> dict:
         """Parse HTML string into JSON object."""
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(html, 'lxml')
         root_element = find_root_element(soup)
 
         # Extract structured content
-        parser = SectionParser()
-        result = parser.parse_to_dict(root_element)
+        result = self.parse_to_dict(root_element)
         return result
 
     def get_aria_level(self, element) -> int | None:
@@ -159,7 +159,7 @@ class SectionParser:
 
     def create_section_wrapper(self, heading, content_elements) -> BeautifulSoup:
         """Create a new section wrapper with heading and content."""
-        soup = BeautifulSoup('<section></section>', 'html.parser')
+        soup = BeautifulSoup('<section></section>', 'lxml')
         section = soup.find('section')
 
         # Add heading
@@ -402,11 +402,11 @@ class SectionParser:
             content = self.get_section_content(heading, siblings)
 
             # Create a temporary container for this subsection
-            temp_soup = BeautifulSoup('<div></div>', 'html.parser')
+            temp_soup = BeautifulSoup('<div></div>', 'lxml')
             temp_div = temp_soup.find('div')
 
             # Clone the heading instead of extracting to avoid modifying original
-            heading_copy = BeautifulSoup(str(heading), 'html.parser')
+            heading_copy = copy.deepcopy(heading)
             heading_element = heading_copy.find()
             if heading_element:
                 temp_div.append(heading_element)
@@ -414,7 +414,7 @@ class SectionParser:
             for element in content:
                 if hasattr(element, 'name'):
                     # Clone the element instead of extracting
-                    element_soup = BeautifulSoup(str(element), 'html.parser')
+                    element_soup = BeautifulSoup(str(element), 'lxml')
                     element_copy = element_soup.find()
                     if element_copy:
                         temp_div.append(element_copy)
