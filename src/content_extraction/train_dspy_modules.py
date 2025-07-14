@@ -25,15 +25,12 @@ import dspy
 import os
 import json
 from dspy_modules import (
-    GenerateTitle,
-    CleanText,
     ExtractDefinitions,
     ExtractProcedures,
     GenerateKeywords,
     GenerateFlashcards,
     GenerateAbstract,
     GenerateFocus,
-    format_section_digest
 )
 
 # --- Mock Training Data ---

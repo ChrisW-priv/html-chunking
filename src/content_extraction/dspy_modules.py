@@ -4,33 +4,7 @@ DSPy modules for enriching nodes with additional fields derived from section_dig
 
 import dspy
 import json
-from typing import List, Dict, Any, Optional
 
-# This helper function is used to format the section_digest dictionary
-# into a single string that can be passed to the language model.
-def format_section_digest(section_digest: Dict[str, Any]) -> str:
-    """Converts section_digest dict to a string for the LLM."""
-    content = f"Title: {section_digest.get('title', 'No title')}\n"
-    content += f"Text: {section_digest.get('text', 'No text')}\n"
-
-    if 'subsections' in section_digest and section_digest['subsections']:
-        content += "\nSubsections:\n"
-        for i, subsection in enumerate(section_digest['subsections'], 1):
-            content += f"{i}. {subsection.get('title', 'Untitled')}\n"
-            content += f"   {subsection.get('text', 'No text')}\n"
-    return content
-
-# --- Individual Field Signatures ---
-
-class GenerateTitle(dspy.Signature):
-    """Generate a clear, concise title for the node."""
-    section_content = dspy.InputField(desc="The content of the section.")
-    title = dspy.OutputField(desc="A clear, concise title that defines the node.")
-
-class CleanText(dspy.Signature):
-    """Clean and process the text content."""
-    section_content = dspy.InputField(desc="The content of the section.")
-    text = dspy.OutputField(desc="The text content, cleaned and processed.")
 
 class ExtractDefinitions(dspy.Signature):
     """Extract key concepts and their definitions as a JSON array."""

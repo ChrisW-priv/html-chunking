@@ -2,8 +2,8 @@
 import sys
 import argparse
 import hashlib
-from common import read_input, write_output
-from operator import le
+import json
+from common_std_io import read_input, write_output
 
 
 def shorten_text(text: str, max_elements: int = 2, subsections: list[dict[str, object]] | None = None) -> str:
@@ -96,7 +96,8 @@ def main():
     )
     args = parser.parse_args()
     try:
-        data = read_input(args.input)
+        content = read_input(args.input)
+        data = json.loads(content)
         nodes = process_node(data, parent_digest_hash=None)
         write_output(nodes, args.output)
     except Exception as e:

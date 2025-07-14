@@ -29,95 +29,9 @@ Examples:
 """
 
 import sys
-import json
 import argparse
-from pathlib import Path
-from typing import Optional, Dict, Any
-from bs4 import BeautifulSoup
-
-
-from src.content_extraction import SectionParser
-
-
-def read_input(input_file: Optional[str] = None) -> str:
-    """Read HTML content from file or stdin."""
-    try:
-        if input_file:
-            if not Path(input_file).exists():
-                raise FileNotFoundError(f"Input file not found: {input_file}")
-
-            with open(input_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-
-            if not content.strip():
-                raise ValueError(f"Input file is empty: {input_file}")
-
-        else:
-            # Read from stdin
-            content = sys.stdin.read()
-
-            if not content.strip():
-                raise ValueError("No input provided via stdin")
-
-        return content
-
-    except FileNotFoundError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error reading input: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
-def write_output(data: Dict[str, Any], output_file: Optional[str] = None, pretty: bool = False) -> None:
-    """Write JSON data to file or stdout."""
-    try:
-        if pretty:
-            json_output = json.dumps(data, indent=2, ensure_ascii=False)
-        else:
-            json_output = json.dumps(data, ensure_ascii=False)
-
-        if output_file:
-            # Ensure output directory exists
-            output_path = Path(output_file)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(json_output)
-                f.write('\n')  # Add newline at end
-
-            print(f"Output written to: {output_file}", file=sys.stderr)
-        else:
-            # Write to stdout
-            print(json_output)
-
-    except Exception as e:
-        print(f"Error writing output: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
-
-def parse_html(html_content: str, verbose: bool = False) -> Dict[str, Any]:
-    """Parse HTML content and extract structured data."""
-    try:
-        if verbose:
-            print(f"Parsing HTML content ({len(html_content)} characters)...", file=sys.stderr)
-
-        # Extract structured content
-        parser = SectionParser()
-        result = parser.parse_html(html_content)
-
-        if verbose:
-            print(f"Extracted {len(result.get('subsections', []))} subsections", file=sys.stderr)
-
-        return result
-
-    except Exception as e:
-        print(f"Error parsing HTML: {e}", file=sys.stderr)
-        sys.exit(1)
+from common_std_io import read_input, write_output
+from semantic_chunk_html import SectionParser
 
 
 def main():
@@ -178,7 +92,8 @@ Examples:
         html_content = read_input(args.input_file)
 
         # Parse HTML
-        result = parse_html(html_content, args.verbose)
+        parser = SectionParser()
+        result = parser.parse_html(html_content)
 
         # Write output
         write_output(result, args.output, args.pretty)

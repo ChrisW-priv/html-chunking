@@ -3,6 +3,7 @@ CLI tool to enrich nodes using trained DSPy models.
 
 This script takes JSONL input (each line is a JSON object representing a node)
 and enriches each node with the following fields using pre-compiled DSPy models:
+
 - Title
 - Text
 - Definitions
@@ -11,9 +12,6 @@ and enriches each node with the following fields using pre-compiled DSPy models:
 - Flashcards
 - Abstract
 - Focus
-
-This script performs inference only. To train/compile the DSPy models,
-run `train_dspy_modules.py` first.
 """
 
 import argparse
@@ -23,17 +21,14 @@ import sys
 from typing import Dict, List, Any, Optional
 
 import dspy
-from common import write_output, read_input
+from common_std_io import write_output
 from dspy_modules import (
-    GenerateTitle,
-    CleanText,
     ExtractDefinitions,
     ExtractProcedures,
     GenerateKeywords,
     GenerateFlashcards,
     GenerateAbstract,
     GenerateFocus,
-    format_section_digest
 )
 
 

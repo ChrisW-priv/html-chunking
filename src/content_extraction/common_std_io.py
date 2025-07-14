@@ -3,7 +3,7 @@ import sys
 import json
 
 
-def read_input(input_file: str | None = None) -> dict[str, object]:
+def read_input(input_file: str | None = None) -> str:
     """Read JSON content from a file or stdin and parse it."""
     try:
         if input_file:
@@ -16,11 +16,7 @@ def read_input(input_file: str | None = None) -> dict[str, object]:
 
     if not content.strip():
         raise ValueError("No input JSON provided")
-    try:
-        data = json.loads(content)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON: {e}")
-    return data
+    return content
 
 
 def write_output(
