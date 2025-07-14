@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "db-dtypes>=1.4.3",
+    "dspy>=2.6.27",
     "google-cloud-bigquery>=3.34.0",
     "jupyterlab>=4.4.4",
     "marker-pdf>=1.8.1",
