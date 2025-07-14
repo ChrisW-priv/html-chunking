@@ -105,9 +105,9 @@ Examples:
     except KeyboardInterrupt:
         print("\nOperation cancelled by user", file=sys.stderr)
         return 1
-    # except Exception as e:
-    #     print(f"Unexpected error: {e}", file=sys.stderr)
-    #     return 1
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == '__main__':
