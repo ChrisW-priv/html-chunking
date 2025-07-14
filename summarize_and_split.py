@@ -31,7 +31,7 @@ def shorten_text(text: str, max_elements: int = 2, subsections: list[dict[str, o
     return DELIM.join(shortened)
 
 
-def generate_section_digest(node: dict[str, str | list[dict]]) -> dict[str, object]:
+def generate_section_digest(node: dict[str, str | list[dict[str, object]]]) -> dict[str, object]:
     """Generate a section digest string for a node, including its title/text and immediate children."""
     text = node.get("text", "")
     section_digest = {
@@ -43,7 +43,7 @@ def generate_section_digest(node: dict[str, str | list[dict]]) -> dict[str, obje
     for child in node.get("subsections", []):
         child_title = child.get("title", "")
         child_text = child.get("text", "")
-        child_subsections = child.get("subsections")
+        child_subsections = child.get("subsections", [])
         length = 1 if text else -1
         short_text = shorten_text(child_text, length, child_subsections)
         section_digest["subsections"].append({
@@ -53,7 +53,7 @@ def generate_section_digest(node: dict[str, str | list[dict]]) -> dict[str, obje
     return section_digest
 
 
-def compute_id(section_digest: dict[str, object]) -> str:
+def compute_digest_hash(section_digest: dict[str, object]) -> str:
     """Compute a BLAKE2b hash of the section digest text as the node ID."""
     h = hashlib.blake2b(digest_size=16)
     section_digest_text = str(section_digest)
@@ -62,31 +62,30 @@ def compute_id(section_digest: dict[str, object]) -> str:
 
 
 def process_node(
-    node: dict[str, object], parent_id: str | None = None
+    node: dict[str, object], parent_digest_hash: str | None = None
 ) -> list[dict[str, object]]:
     """
-    Recursively process a node and its subsections, returning a flat list of nodes
-    with 'id', 'parent_id', 'title', 'text', and 'summary'.
+    Recursively process a node and its subsections, returning a flat list of nodes.
     """
     section_digest = generate_section_digest(node)
-    node_id = compute_id(section_digest)
+    digest_hash = compute_digest_hash(section_digest)
     result: dict[str, object] = {
-        "id": node_id,
-        "parent_id": parent_id,
+        "digest_hash": digest_hash,
+        "parent_digest_hash": parent_digest_hash,
         "title": node.get("title"),
         "text": node.get("text"),
         "section_digest": section_digest,
     }
     nodes: list[dict[str, object]] = [result]
     for child in node.get("subsections", []):  # type: ignore
-        nodes.extend(process_node(child, parent_id=node_id))
+        nodes.extend(process_node(child, parent_digest_hash=digest_hash))
     return nodes
 
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Split hierarchical JSON into JSON Lines with node summaries and IDs."
+            "Split hierarchical JSON into JSON Lines with node summaries and parent digests."
         )
     )
     parser.add_argument(
@@ -98,7 +97,7 @@ def main():
     args = parser.parse_args()
     try:
         data = read_input(args.input)
-        nodes = process_node(data, parent_id=None)
+        nodes = process_node(data, parent_digest_hash=None)
         write_output(nodes, args.output)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
