@@ -29,12 +29,26 @@ def adjust_headings(lines):
     Yields:
         str: The processed lines of text.
     """
-    HEADING_PATTERN = re.compile(r"^(#*)\s*(\d+(?:\.\d+)*)\s*(.*)$")
+    HEADING_PATTERN = re.compile(r"^(#*)\s+([A-Z]\s?(?:\.\s*\d+)*|\d+(?:\.\s*\d+)*)\s*(.*)$")
+    ORDERED_LIST_PATTERN = re.compile(r"^\s*\d+\.\s")
 
     for line in lines:
+        # If the line is a numbered list item, leave it as is.
+        if ORDERED_LIST_PATTERN.match(line):
+            yield line
+            continue
+
         match = HEADING_PATTERN.match(line)
 
         if not match:
+            stripped_line = line.lstrip()
+            if stripped_line.startswith('#'):
+                # Default non-matching headings to level 4
+                text = stripped_line.lstrip('#').strip()
+                yield ""
+                yield "#### " + text
+                continue
+
             # Keep non-matching lines as is
             yield line
             continue

@@ -87,7 +87,7 @@ class HTMLSectionParser:
 
     def parse_sections(self, html_content: str) -> List[Dict[str, Any]]:
         """Parse HTML and extract hierarchical sections."""
-        soup = BeautifulSoup(html_content, 'lxml')
+        soup = BeautifulSoup(html_content, 'lx')
 
         # Find all potential heading elements in document order
         headings = []

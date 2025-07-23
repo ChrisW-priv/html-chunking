@@ -30,8 +30,8 @@ Examples:
 
 import sys
 import argparse
-from common_std_io import read_input, write_output
-from semantic_chunk_html import HTMLSectionParser
+from content_extraction.common_std_io import read_input, write_output
+from content_extraction.semantic_chunk_html import HTMLSectionParser
 import json
 
 
