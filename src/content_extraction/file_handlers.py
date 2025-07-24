@@ -4,69 +4,31 @@ import subprocess
 import sys
 import tempfile
 import mimetypes
+import json
 from urllib.parse import urlparse
 
 import requests
 
 from content_extraction.extract_from_pptx import extract_content as extract_pptx_content
+from content_extraction.semantic_chunk_html import HTMLSectionParser
+from content_extraction.common_std_io import write_stream_of_obj
+from content_extraction.split_and_create_digest import process_node
 
 
 class FileHandlerError(Exception):
     """Custom exception for file handling errors."""
 
 
-def handle_pdf(file_path: str, output_dir: str):
-    """
-    Handles PDF files (local or URL) by running the main processing script.
-    """
-    # Correct path to the script from this file's location
-    script_path = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'process_document.sh')
-
-    if not os.path.exists(script_path):
-        raise FileNotFoundError(f"Processing script not found at: {script_path}")
-
-    if not os.access(script_path, os.X_OK):
-        os.chmod(script_path, 0o755)
-
+def _convert_with_pandoc(file_path: str, output_dir: str, file_type: str):
+    """Helper function to run pandoc for different file types."""
+    output_html_path = os.path.join(output_dir, 'index.html')
     try:
-        # The script is designed to take a file path or URL and an output directory
         subprocess.run(
-            [script_path, file_path, output_dir],
+            ['pandoc', file_path, '-s', '-o', output_html_path],
             check=True,
             capture_output=True,
             text=True,
             encoding='utf-8'
-        )
-        # The script is expected to create index.html in the output directory
-        return os.path.join(output_dir, 'index.html')
-    except subprocess.CalledProcessError as e:
-        print(f"Error processing PDF file/url: {file_path}", file=sys.stderr)
-        print(f"Stderr: {e.stderr}", file=sys.stderr)
-        raise FileHandlerError(f"PDF processing failed for {file_path}") from e
-
-
-def handle_pptx(file_path: str, output_dir: str):
-    """
-    Handles PowerPoint files using the existing pptx extraction function.
-    """
-    # The pptx extractor outputs to 'output.html' by default
-    html_out, _ = extract_pptx_content(file_path, output_dir)
-    if not html_out:
-        raise FileHandlerError(f"Failed to extract content from {file_path}")
-
-    return html_out
-
-
-def _convert_with_pandoc(file_path: str, output_dir: str, file_type: str):
-    """Helper function to run pandoc for different file types."""
-    # Standardize output file name
-    output_html_path = os.path.join(output_dir, 'index.html')
-    try:
-        subprocess.run(
-            ['pandoc', file_path, '-s', '-o', output_html_path],  # -s for standalone
-            check=True,
-            capture_output=True,
-            text=True
         )
         return output_html_path
     except FileNotFoundError:
@@ -75,6 +37,26 @@ def _convert_with_pandoc(file_path: str, output_dir: str, file_type: str):
     except subprocess.CalledProcessError as e:
         print(f"Error converting {file_type} to HTML: {e.stderr}", file=sys.stderr)
         raise FileHandlerError(f"Pandoc conversion failed for {file_path}") from e
+
+
+def handle_pdf(file_path: str, output_dir: str):
+    """Handles PDF documents by converting them to HTML using pandoc."""
+    return _convert_with_pandoc(file_path, output_dir, "PDF")
+
+
+def handle_pptx(file_path: str, output_dir: str):
+    """
+    Handles PowerPoint files using the existing pptx extraction function.
+    """
+    html_out, _ = extract_pptx_content(file_path, output_dir)
+    if not html_out:
+        raise FileHandlerError(f"Failed to extract content from {file_path}")
+
+    # Standardize the output filename to index.html
+    standard_path = os.path.join(output_dir, 'index.html')
+    if os.path.abspath(html_out) != os.path.abspath(standard_path):
+        shutil.move(html_out, standard_path)
+    return standard_path
 
 
 def handle_docx(file_path: str, output_dir: str):
@@ -92,8 +74,8 @@ def handle_html(file_path: str, output_dir: str):
     Handles HTML files by copying them to the output directory with the standard name.
     """
     dest_path = os.path.join(output_dir, 'index.html')
-    # Use copy to avoid moving the original file if it's a local source
-    shutil.move(file_path, dest_path)
+    if os.path.abspath(file_path) != os.path.abspath(dest_path):
+        shutil.copy(file_path, dest_path)
     return dest_path
 
 
@@ -104,22 +86,18 @@ def handle_url(url: str, output_dir: str, force_ext: str = ""):
     """
     file_ext = None
 
-    # 1. Determine the file extension
     if force_ext:
         file_ext = f".{force_ext.lstrip('.')}"
     else:
         try:
-            # Use a HEAD request to be efficient
             response = requests.head(url, timeout=15, allow_redirects=True)
             response.raise_for_status()
             content_type = response.headers.get('content-type')
             if content_type:
-                # Guess extension from MIME type
                 mime_type = content_type.split(';')[0].strip()
                 file_ext = mimetypes.guess_extension(mime_type)
 
-            # Fallback to URL path if MIME type is not helpful
-            if not file_ext or file_ext == '.bin':
+            if not file_ext or file_ext in ['.bin']:
                 parsed_url = urlparse(url)
                 _, ext_from_url = os.path.splitext(parsed_url.path)
                 if ext_from_url:
@@ -128,52 +106,43 @@ def handle_url(url: str, output_dir: str, force_ext: str = ""):
         except requests.RequestException as e:
             raise FileHandlerError(f"Failed to retrieve headers from URL {url}: {e}") from e
 
-    # Default to HTML if we can't figure it out
     if not file_ext or file_ext.lower() not in EXTENSION_HANDLERS:
-        print(f"Could not determine a specific file type for {url}. Defaulting to HTML.", file=sys.stderr)
+        print(f"Could not determine a supported file type for {url}. Defaulting to HTML.", file=sys.stderr)
         file_ext = '.html'
 
-    # 2. Process based on determined extension
-
-    # PDF: Don't download, the handler can take a URL directly.
-    if file_ext == '.pdf':
-        return handle_pdf(url, output_dir)
-
-    # HTML: Stream directly to the final destination file.
+    # Download to a temporary file for all types except HTML, which is streamed.
     if file_ext == '.html':
         output_html_path = os.path.join(output_dir, 'index.html')
         try:
             with requests.get(url, stream=True, timeout=60) as r:
                 r.raise_for_status()
                 with open(output_html_path, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=4096):
+                    for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
             return output_html_path
         except requests.RequestException as e:
             raise FileHandlerError(f"Failed to download HTML content from {url}: {e}")
 
-    # Other types (PPTX, DOCX, MD): Download to a temporary file for processing.
     handler_func = EXTENSION_HANDLERS.get(file_ext.lower())
     if not handler_func:
-        raise FileHandlerError(f"No handler found for file type '{file_ext}' from URL {url}")
+         raise FileHandlerError(f"No handler found for file type '{file_ext}' from URL {url}")
 
     temp_file_path = None
     try:
-        # Create a temporary file to hold the downloaded content
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
             temp_file_path = temp_file.name
 
-            with requests.get(url, stream=True, timeout=60) as r:
-                r.raise_for_status()
-                for chunk in r.iter_content(chunk_size=4096):
-                    temp_file.write(chunk)
-            # Process the temporary file
-            return handler_func(temp_file_path, output_dir)
+        with requests.get(url, stream=True, timeout=120) as r:
+            r.raise_for_status()
+            with open(temp_file_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+        return handler_func(temp_file_path, output_dir)
 
     except requests.RequestException as e:
         raise FileHandlerError(f"Failed to download content from {url}: {e}") from e
     finally:
-        # Ensure the temporary file is deleted
         if temp_file_path and os.path.exists(temp_file_path):
             os.unlink(temp_file_path)
 
@@ -193,7 +162,6 @@ def get_handler(input_path: str, force_ext: str = None):
     Determines and returns the correct file handler function based on the input.
     """
     if input_path.startswith(('http://', 'https://')):
-        # Return a lambda that captures the arguments for the URL handler
         return lambda output_dir: handle_url(input_path, output_dir, force_ext)
 
     if not os.path.exists(input_path):
@@ -210,7 +178,6 @@ def get_handler(input_path: str, force_ext: str = None):
     if not handler_func:
         raise ValueError(f"Unsupported file type: {file_ext}")
 
-    # Return a lambda that captures the file path for the local file handler
     return lambda output_dir: handler_func(input_path, output_dir)
 
 
@@ -222,6 +189,29 @@ def process_file(input_path: str, output_dir: str, force_ext: str = None) -> str
     os.makedirs(output_dir, exist_ok=True)
     handler = get_handler(input_path, force_ext)
     final_html_path = handler(output_dir)
+
     if not final_html_path or not os.path.exists(final_html_path):
         raise FileHandlerError(f"Processing failed to produce an output file for '{input_path}'")
+
+    print("Parsing HTML into sections...")
+    try:
+        with open(final_html_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+    except Exception as e:
+        raise FileHandlerError(f"Failed to read the generated HTML file at {final_html_path}: {e}")
+
+    parser = HTMLSectionParser()
+    parsed_sections = parser.parse_sections(html_content)
+
+    print("Splitting parsed sections and creating JSON digest...")
+    jsonl_output_path = os.path.join(output_dir, 'sections.jsonl')
+
+    all_nodes = []
+    if parsed_sections:
+        for section in parsed_sections:
+            all_nodes.extend(process_node(section, parent_digest_hash=None))
+
+    write_stream_of_obj(all_nodes, jsonl_output_path)
+    print(f"Successfully created JSON digest at {jsonl_output_path}")
+
     return final_html_path

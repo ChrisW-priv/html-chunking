@@ -42,11 +42,6 @@ Examples:
         default=None,
         help="Force the handler for a specific file extension (e.g., 'pdf', 'pptx') when auto-detection is ambiguous or incorrect."
     )
-    parser.add_argument(
-        "--silent",
-        action="store_true",
-        help="Suppress success output messages."
-    )
 
     args = parser.parse_args()
 
