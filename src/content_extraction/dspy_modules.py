@@ -6,8 +6,13 @@ dspy.configure(lm=lm)
 
 class CorrectHeadingLevelSignature(dspy.Signature):
     """Correct heading levels. Main title should be H1, Chapter Titles H2, etc."""
-    headings: str = dspy.InputField(description=r"String of headings extracted via OCR process, separated by \n")
-    corrected_headings: str = dspy.OutputField(description="Headings with corrected level")
+
+    headings: str = dspy.InputField(
+        description=r"String of headings extracted via OCR process, separated by \n"
+    )
+    corrected_headings: str = dspy.OutputField(
+        description="Headings with corrected level"
+    )
 
 
 class CorrectHeadingLevel(dspy.Module):

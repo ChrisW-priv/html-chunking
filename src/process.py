@@ -1,7 +1,8 @@
 import argparse
 import sys
 
-from content_extraction.file_handlers import process_file, FileHandlerError
+from content_extraction.file_handlers import process_file
+
 
 def main():
     """
@@ -25,22 +26,22 @@ Examples:
 
   # Process a remote URL, forcing the type to be treated as HTML
   python src/process.py https://example.com/some-page --force-ext html
-"""
+""",
     )
 
     parser.add_argument(
-        "input_path",
-        help="Path to the input file or a URL to process."
+        "input_path", help="Path to the input file or a URL to process."
     )
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         default="output",
-        help="Path to the output directory (defaults to 'output')."
+        help="Path to the output directory (defaults to 'output').",
     )
     parser.add_argument(
         "--force-ext",
         default=None,
-        help="Force the handler for a specific file extension (e.g., 'pdf', 'pptx') when auto-detection is ambiguous or incorrect."
+        help="Force the handler for a specific file extension (e.g., 'pdf', 'pptx') when auto-detection is ambiguous or incorrect.",
     )
 
     args = parser.parse_args()

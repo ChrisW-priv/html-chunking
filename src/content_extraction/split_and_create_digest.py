@@ -7,20 +7,19 @@ from content_extraction.common_std_io import read_input, write_stream_of_obj
 from dataclasses import dataclass, field, asdict
 
 
-
 @dataclass
 class Node:
     title: str
     text: str
     level: int
-    subsections: list['Node'] | None = field(default_factory=list)
+    subsections: list["Node"] | None = field(default_factory=list)
 
 
 @dataclass
 class SectionDigestNode:
     title: str
     text: str
-    subsections: list['SectionDigestNode'] = field(default_factory=list)
+    subsections: list["SectionDigestNode"] = field(default_factory=list)
 
 
 @dataclass
@@ -32,7 +31,9 @@ class ProcessResultNode:
     section_digest: SectionDigestNode
 
 
-def shorten_text(text: str, max_elements: int = 2, subsections: list[Node] | None = None) -> str:
+def shorten_text(
+    text: str, max_elements: int = 2, subsections: list[Node] | None = None
+) -> str:
     """Shorten text by splitting on lines and keeping at most max_elements, appending '...' if truncated."""
     if max_elements == -1:
         return text
@@ -42,7 +43,7 @@ def shorten_text(text: str, max_elements: int = 2, subsections: list[Node] | Non
         for child in subsections or []:
             result = "<p>Covered topics in this subsection:</p><ul>"
             for child in subsections or []:
-                result += f"<li>{child.get("title")}</li>"
+                result += f"<li>{child.get('title')}</li>"
             result += "</ul>"
         return result
 
@@ -60,10 +61,7 @@ def shorten_text(text: str, max_elements: int = 2, subsections: list[Node] | Non
 def generate_section_digest(node: dict) -> SectionDigestNode:
     """Generate a section digest string for a node, including its title/text and immediate children."""
     text = node.get("text", "")
-    section_digest = SectionDigestNode(
-        title=node.get("title", ""),
-        text=text
-    )
+    section_digest = SectionDigestNode(title=node.get("title", ""), text=text)
     # Include immediate children
     for child in node.get("subsections") or []:
         child_title = child.get("title")
@@ -84,19 +82,21 @@ def compute_digest_hash(section_digest: SectionDigestNode) -> str:
     return h.hexdigest()
 
 
-def process_node( node: dict, parent_digest_hash: str | None = None ) -> list[dict]:
+def process_node(node: dict, parent_digest_hash: str | None = None) -> list[dict]:
     """
     Recursively process a node and its subsections, returning a flat list of nodes.
     """
     section_digest = generate_section_digest(node)
     digest_hash = compute_digest_hash(section_digest)
-    result = ProcessResultNode(**{
-        "digest_hash": digest_hash,
-        "parent_digest_hash": parent_digest_hash,
-        "title": node.get("title"),
-        "text": node.get("text"),
-        "section_digest": section_digest,
-    })
+    result = ProcessResultNode(
+        **{
+            "digest_hash": digest_hash,
+            "parent_digest_hash": parent_digest_hash,
+            "title": node.get("title"),
+            "text": node.get("text"),
+            "section_digest": section_digest,
+        }
+    )
     result = asdict(result)
     nodes = [result]
     for child in node.get("subsections") or []:
@@ -110,16 +110,18 @@ def main():
             "Split hierarchical JSON into JSON Lines with node summaries and parent digests."
         )
     )
-    parser.add_argument(
-        'input', nargs='?', help="Input JSON file (defaults to stdin)"
-    )
-    parser.add_argument(
-        '-o', '--output', help="Output JSONL file (defaults to stdout)"
-    )
+    parser.add_argument("input", nargs="?", help="Input JSON file (defaults to stdin)")
+    parser.add_argument("-o", "--output", help="Output JSONL file (defaults to stdout)")
     args = parser.parse_args()
     content = read_input(args.input)
     data_list = json.loads(content)
-    nodes = [node for result_list in (process_node(data, parent_digest_hash=None) for data in data_list) for node in result_list]
+    nodes = [
+        node
+        for result_list in (
+            process_node(data, parent_digest_hash=None) for data in data_list
+        )
+        for node in result_list
+    ]
     write_stream_of_obj(nodes, args.output)
 
 

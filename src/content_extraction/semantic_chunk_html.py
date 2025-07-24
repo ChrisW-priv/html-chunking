@@ -10,7 +10,7 @@ class HTMLSectionParser:
     """Fast parser for HTML that finds sections and splits content into subsections."""
 
     def __init__(self):
-        self.heading_tags = {'h1', 'h2', 'h3', 'h4', 'h5', 'h6'}
+        self.heading_tags = {"h1", "h2", "h3", "h4", "h5", "h6"}
 
     def get_heading_level(self, element) -> int | None:
         """Extract heading level from an element."""
@@ -19,21 +19,23 @@ class HTMLSectionParser:
             return int(element.name[1])
 
         # Elements with role="heading" and aria-level
-        if element.get('role') == 'heading':
-            aria_level = element.get('aria-level')
+        if element.get("role") == "heading":
+            aria_level = element.get("aria-level")
             if aria_level and aria_level.isdigit():
                 return int(aria_level)
             # Default to level 1 if no aria-level specified
             return 1
 
         # Elements with aria-level (even without role="heading")
-        aria_level = element.get('aria-level')
+        aria_level = element.get("aria-level")
         if aria_level and aria_level.isdigit():
             return int(aria_level)
 
         return None
 
-    def extract_text_between_headings(self, soup, start_element, end_element=None) -> str:
+    def extract_text_between_headings(
+        self, soup, start_element, end_element=None
+    ) -> str:
         """Extract all content between two heading elements."""
         content_parts = []
         current = start_element.next_sibling
@@ -41,9 +43,14 @@ class HTMLSectionParser:
         while current and current != end_element:
             if isinstance(current, Tag):
                 # Check if this is a heading element
-                if current.name in self.heading_tags or \
-                   (current.get('role') == 'heading') or \
-                   (current.get('aria-level') and current.get('aria-level').isdigit()):
+                if (
+                    current.name in self.heading_tags
+                    or (current.get("role") == "heading")
+                    or (
+                        current.get("aria-level")
+                        and current.get("aria-level").isdigit()
+                    )
+                ):
                     # Hit another heading, stop
                     break
 
@@ -55,12 +62,14 @@ class HTMLSectionParser:
                     break
 
                 content_parts.append(str(current))
-            elif hasattr(current, 'string') and current.string and current.string.strip():
+            elif (
+                hasattr(current, "string") and current.string and current.string.strip()
+            ):
                 # It's text content
                 content_parts.append(current.string)
             current = current.next_sibling
 
-        return ''.join(content_parts).strip()
+        return "".join(content_parts).strip()
 
     def _find_headings_in_element(self, element):
         """Find all heading elements within a given element."""
@@ -71,7 +80,9 @@ class HTMLSectionParser:
                 headings.append((child, level))
         return headings
 
-    def find_next_heading_at_level_or_higher(self, soup, start_element, current_level: int):
+    def find_next_heading_at_level_or_higher(
+        self, soup, start_element, current_level: int
+    ):
         """Find the next heading at the same level or higher."""
         current = start_element.next_sibling
 
@@ -86,7 +97,7 @@ class HTMLSectionParser:
 
     def parse_sections(self, html_content: str) -> list[dict[str, object]]:
         """Parse HTML and extract hierarchical sections."""
-        soup = BeautifulSoup(html_content, 'lxml')
+        soup = BeautifulSoup(html_content, "lxml")
 
         # Find all potential heading elements in document order
         headings = []
@@ -142,10 +153,10 @@ class HTMLSectionParser:
 
             # Build the section dictionary
             section = {
-                'title': current_element.get_text().strip(),
-                'text': text_content,
-                'level': current_level,
-                'subsections': subsections
+                "title": current_element.get_text().strip(),
+                "text": text_content,
+                "level": current_level,
+                "subsections": subsections,
             }
 
             result.append(section)

@@ -47,38 +47,36 @@ Examples:
   cat input.html | %(prog)s              # Parse from stdin
   %(prog)s --pretty input.html           # Pretty-printed JSON output
   %(prog)s --verbose input.html          # Show debug information
-        """
+        """,
     )
 
     parser.add_argument(
-        'input_file',
-        nargs='?',
-        help='Input HTML file (if not provided, reads from stdin)'
+        "input_file",
+        nargs="?",
+        help="Input HTML file (if not provided, reads from stdin)",
     )
 
     parser.add_argument(
-        '-o', '--output',
-        metavar='FILE',
-        help='Output JSON file (if not provided, writes to stdout)'
+        "-o",
+        "--output",
+        metavar="FILE",
+        help="Output JSON file (if not provided, writes to stdout)",
     )
 
     parser.add_argument(
-        '--pretty',
-        action='store_true',
-        help='Pretty-print JSON output with indentation'
+        "--pretty",
+        action="store_true",
+        help="Pretty-print JSON output with indentation",
     )
 
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Show verbose output and debug information'
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Show verbose output and debug information",
     )
 
-    parser.add_argument(
-        '--version',
-        action='version',
-        version='%(prog)s 1.0.0'
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
 
     args = parser.parse_args()
 
@@ -110,5 +108,5 @@ Examples:
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
