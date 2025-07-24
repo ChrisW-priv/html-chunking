@@ -19,7 +19,7 @@ class FileHandlerError(Exception):
     """Custom exception for file handling errors."""
 
 
-def _convert_with_pandoc(file_path: str, output_dir: str, file_type: str):
+def _convert_with_pandoc(file_path: str, output_dir: str):
     """Helper function to run pandoc for different file types."""
     output_html_path = os.path.join(output_dir, 'index.html')
     try:
@@ -35,13 +35,48 @@ def _convert_with_pandoc(file_path: str, output_dir: str, file_type: str):
         error_msg = "Error: `pandoc` command not found. Please ensure pandoc is installed and in your PATH."
         raise FileHandlerError(error_msg)
     except subprocess.CalledProcessError as e:
-        print(f"Error converting {file_type} to HTML: {e.stderr}", file=sys.stderr)
+        print(f"Error converting {file_path} to HTML: {e.stderr}", file=sys.stderr)
         raise FileHandlerError(f"Pandoc conversion failed for {file_path}") from e
 
 
 def handle_pdf(file_path: str, output_dir: str):
-    """Handles PDF documents by converting them to HTML using pandoc."""
-    return _convert_with_pandoc(file_path, output_dir, "PDF")
+    """
+    Handles PDF files by running the main processing script.
+    The script is expected to convert the PDF to HTML and place it as index.html
+    in the output_dir.
+    """
+    print(f"Processing PDF file: {file_path}")
+    # This path assumes the script is located at src/scripts/process_document.sh
+    script_path = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'process_document.sh')
+    output_html_path = os.path.join(output_dir, 'index.html') # Define output_html_path
+
+    if not os.path.exists(script_path):
+        raise FileNotFoundError(f"Processing script not found at: {script_path}")
+
+    # Ensure the script is executable
+    if not os.access(script_path, os.X_OK):
+        print(f"Warning: Script {script_path} is not executable. Attempting to set permissions.", file=sys.stderr)
+        try:
+            os.chmod(script_path, 0o755)
+        except OSError as e:
+            raise FileHandlerError(f"Failed to set executable permissions for {script_path}: {e}")
+
+    try:
+        # The script is expected to take input_file and output_directory as arguments
+        subprocess.run(
+            [script_path, file_path, output_dir],
+            check=True,  # Raise CalledProcessError if the command returns a non-zero exit code
+            capture_output=True, # Capture stdout and stderr
+            text=True, # Decode stdout/stderr as text
+            encoding='utf-8'
+        )
+        if not os.path.exists(output_html_path):
+            raise FileHandlerError(f"Processing script {script_path} completed, but did not produce the expected output file: {output_html_path}. Script stderr: {result.stderr}")
+
+        return output_html_path
+    except subprocess.CalledProcessError as e:
+        print(f"Error processing PDF with script: {e.stderr}", file=sys.stderr)
+        raise FileHandlerError(f"PDF processing script failed for {file_path}") from e
 
 
 def handle_pptx(file_path: str, output_dir: str):
@@ -61,12 +96,12 @@ def handle_pptx(file_path: str, output_dir: str):
 
 def handle_docx(file_path: str, output_dir: str):
     """Handles Word documents by converting them to HTML using pandoc."""
-    return _convert_with_pandoc(file_path, output_dir, "DOCX")
+    return _convert_with_pandoc(file_path, output_dir)
 
 
 def handle_markdown(file_path: str, output_dir: str):
     """Handles Markdown files by converting them to HTML using pandoc."""
-    return _convert_with_pandoc(file_path, output_dir, "Markdown")
+    return _convert_with_pandoc(file_path, output_dir)
 
 
 def handle_html(file_path: str, output_dir: str):
@@ -75,7 +110,7 @@ def handle_html(file_path: str, output_dir: str):
     """
     dest_path = os.path.join(output_dir, 'index.html')
     if os.path.abspath(file_path) != os.path.abspath(dest_path):
-        shutil.copy(file_path, dest_path)
+        shutil.move(file_path, dest_path)
     return dest_path
 
 
@@ -157,7 +192,7 @@ EXTENSION_HANDLERS = {
 }
 
 
-def get_handler(input_path: str, force_ext: str = None):
+def get_handler(input_path: str, force_ext: str = ""):
     """
     Determines and returns the correct file handler function based on the input.
     """
@@ -181,7 +216,7 @@ def get_handler(input_path: str, force_ext: str = None):
     return lambda output_dir: handler_func(input_path, output_dir)
 
 
-def process_file(input_path: str, output_dir: str, force_ext: str = None) -> str:
+def process_file(input_path: str, output_dir: str, force_ext: str = "") -> str:
     """
     Main entry point for processing a file or URL.
     It identifies the file type, runs the appropriate handler, and returns the path to the final processed HTML file.

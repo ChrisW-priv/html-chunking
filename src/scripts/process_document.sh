@@ -33,12 +33,4 @@ echo "$fixed_text" > fixed.md
 # Step 5: Render the markdown file to HTML
 pandoc fixed.md -s -f markdown -t html -o index.html
 
-# Step 6: Parse the HTML and convert it to sections
-echo "Parsing fixed Markdown to HTML sections..."
-parsed_html=$(python -m content_extraction.parse_html index.html)
-
-# Step 7: Split parsed sections and create JSON digest
-echo "Splitting parsed sections and creating JSON digest..."
-echo "$parsed_html" | python -m content_extraction.split_and_create_digest -o sections.jsonl
-
 echo "All processes completed successfully. Output saved in $OUTPUT_DIR"
