@@ -19,7 +19,7 @@ def extract_content(pptx_path: str, output_dir: str):
         output HTML file and the images directory, or (None, None) on failure.
     """
     images_dir = os.path.join(output_dir, 'images')
-    html_out_path = os.path.join(output_dir, 'output.html')
+    html_out_path = os.path.join(output_dir, 'index.html')
 
     # Ensure output directories exist
     os.makedirs(images_dir, exist_ok=True)

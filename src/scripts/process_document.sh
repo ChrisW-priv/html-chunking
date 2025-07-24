@@ -31,9 +31,9 @@ fixed_text=$(python -m content_extraction.fix_ocr combined.md headings.md)
 echo "$fixed_text" > fixed.md
 
 # Step 5: Render the markdown file to HTML
-pandoc fixed.md -f markdown -t html -o index.html
+pandoc fixed.md -s -f markdown -t html -o index.html
 
-# Step 6: Parse the fixed Markdown and convert it to HTML sections
+# Step 6: Parse the HTML and convert it to sections
 echo "Parsing fixed Markdown to HTML sections..."
 parsed_html=$(python -m content_extraction.parse_html index.html)
 
