@@ -182,19 +182,13 @@ def handle_url(url: str, output_dir: str, force_ext: str = ""):
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
             temp_file_path = temp_file.name
 
-        with requests.get(url, stream=True, timeout=120) as r:
-            r.raise_for_status()
-            with open(temp_file_path, "wb") as f:
+            with requests.get(url, stream=True, timeout=120) as r:
+                r.raise_for_status()
                 for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-
-        return handler_func(temp_file_path, output_dir)
-
+                    temp_file.write(chunk)
+            return handler_func(temp_file_path, output_dir)
     except requests.RequestException as e:
         raise FileHandlerError(f"Failed to download content from {url}: {e}") from e
-    finally:
-        if temp_file_path and os.path.exists(temp_file_path):
-            os.unlink(temp_file_path)
 
 
 # Mapping of file extensions to handler functions

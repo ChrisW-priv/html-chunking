@@ -46,10 +46,7 @@ class HTMLSectionParser:
                 if (
                     current.name in self.heading_tags
                     or (current.get("role") == "heading")
-                    or (
-                        current.get("aria-level")
-                        and current.get("aria-level").isdigit()
-                    )
+                    or current.get("aria-level", "").isdigit()
                 ):
                     # Hit another heading, stop
                     break

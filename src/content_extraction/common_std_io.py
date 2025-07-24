@@ -20,28 +20,20 @@ def read_input(input_file: str | None = None) -> str:
 
 
 def write_output(output: str, output_file: str | None = None) -> None:
-    try:
-        out_stream = (
-            open(output_file, "w", encoding="utf-8") if output_file else sys.stdout
-        )
-        out_stream.write(output)
-    except Exception as e:
-        raise RuntimeError(f"Error writing output: {e}")
-    finally:
-        if output_file:
-            out_stream.close()
+    if output_file:
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(output)
+    else:
+        sys.stdout.write(output)
 
 
 def write_stream_of_obj(obj_stream, output_file: str | None = None):
-    try:
-        out_stream = (
-            open(output_file, "w", encoding="utf-8") if output_file else sys.stdout
-        )
+    if output_file:
+        with open(output_file, "w", encoding="utf-8") as f:
+            for obj in obj_stream:
+                f.write(json.dumps(obj))
+                f.write("\n")
+    else:
         for obj in obj_stream:
-            out_stream.write(json.dumps(obj))
-            out_stream.write("\n")
-    except Exception as e:
-        raise RuntimeError(f"Error writing output: {e}")
-    finally:
-        if output_file:
-            out_stream.close()
+            sys.stdout.write(json.dumps(obj))
+            sys.stdout.write("\n")

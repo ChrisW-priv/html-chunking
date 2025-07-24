@@ -32,7 +32,7 @@ class ProcessResultNode:
 
 
 def shorten_text(
-    text: str, max_elements: int = 2, subsections: list[Node] | None = None
+    text: str, max_elements: int = 2, subsections: list[dict] | None = None
 ) -> str:
     """Shorten text by splitting on lines and keeping at most max_elements, appending '...' if truncated."""
     if max_elements == -1:
