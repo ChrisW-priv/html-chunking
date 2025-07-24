@@ -117,13 +117,10 @@ def main():
         '-o', '--output', help="Output JSONL file (defaults to stdout)"
     )
     args = parser.parse_args()
-    try:
-        content = read_input(args.input)
-        data_list = json.loads(content)
-        nodes = [node for result_list in (process_node(data, parent_digest_hash=None) for data in data_list) for node in result_list]
-        write_stream_of_obj(nodes, args.output)
-    except Exception as e:
-        raise
+    content = read_input(args.input)
+    data_list = json.loads(content)
+    nodes = [node for result_list in (process_node(data, parent_digest_hash=None) for data in data_list) for node in result_list]
+    write_stream_of_obj(nodes, args.output)
 
 
 if __name__ == "__main__":

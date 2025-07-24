@@ -12,8 +12,11 @@ writing to a file or stdout, in a standard UNIX-like fashion.
 
 import re
 import argparse
+import difflib
+from typing import Iterable
 import sys
-from content_extraction.common_std_io import read_input, write_output
+
+from content_extraction.common_std_io import write_output
 
 
 def adjust_headings(lines):
@@ -119,35 +122,74 @@ def format_references(lines):
     return modified_lines
 
 
-def process_markdown_content(content, verbose=False):
+def process_science_paper(text_file_content: str, heading_file_content: str):
     """
     Process markdown content with both formatting fixes.
 
-    Args:
-        content (str): The entire markdown content as a single string.
-        verbose (bool): If True, print progress messages to stderr.
-
-    Returns:
-        str: The processed markdown content as a single string.
     """
-    lines = content.splitlines()
+    lines = text_file_content.splitlines()
 
-    if verbose:
-        print(f"Processing {len(lines)} lines...", file=sys.stderr)
-
-    # Part 1: Adjust heading levels
-    if verbose:
-        print("Part 1: Adjusting heading levels...", file=sys.stderr)
     adjusted_lines_generator = adjust_headings(lines)
 
-    # Part 2: Format references section
-    if verbose:
-        print("Part 2: Formatting references section...", file=sys.stderr)
     # Consume the generator to pass a list to the next function
     formatted_lines = format_references(list(adjusted_lines_generator))
 
     # Join lines back into a single string with a trailing newline
     return '\n'.join(formatted_lines) + '\n'
+
+
+def parse_ndiff(diff_lines: Iterable[str]) -> list[tuple[str, str]]:
+    """
+    Turn an ndiff iterable into a list of (old_line, new_line) patches.
+
+    Only pairs up “- old” followed by “+ new” within the same hunk.
+    """
+    patches: list[tuple[str, str]] = []
+    pending_old = None
+
+    for line in diff_lines:
+        if line.startswith('- '):
+            pending_old = line[2:]
+        elif line.startswith('+ ') and pending_old is not None:
+            patches.append((pending_old, line[2:]))
+            pending_old = None
+        elif line.startswith('  ') or not line:
+            patches.append((pending_old or '', ''))
+            pending_old = None
+
+    return patches
+
+
+def apply_heading_patches(ocr_text: str,
+                          diff_lines: Iterable[str]) -> str:
+    """
+    Apply heading corrections from an ndiff iterable to the OCR text.
+
+    For each (old, new) patch, replace the first exact match of old in the OCR
+    text with new.
+    """
+    patches = parse_ndiff(diff_lines)
+    lines = ocr_text.splitlines()
+
+    for old_heading, new_heading in patches:
+        for idx, line in enumerate(lines):
+            if line == old_heading:
+                lines[idx] = new_heading
+                break
+
+    return "\n".join(lines)
+
+
+def process_general_paper(text_file_content: str, heading_file_content: str) -> str:
+    from content_extraction.dspy_modules import CorrectHeadingLevel
+    heading_corrector = CorrectHeadingLevel()
+    pred = heading_corrector(heading_file_content)
+    corrected_headings = pred.corrected_headings
+    with open('corrected_headings.txt', 'w') as f:
+        f.write(corrected_headings)
+    diff = difflib.ndiff(heading_file_content.splitlines(), corrected_headings.splitlines())
+    fixed_text = apply_heading_patches(text_file_content, diff)
+    return fixed_text
 
 
 def main():
@@ -164,47 +206,38 @@ Examples:
         """
     )
     parser.add_argument(
-        "input_file",
-        nargs='?',
-        help="Path to input markdown file (if not provided, reads from stdin)"
+        "ocr_input_file",
+        help="Path to input markdown file"
+    )
+    parser.add_argument(
+        "headings_input_file",
+        help="Path to markdown file with headings"
     )
     parser.add_argument(
         "-o", "--output",
         help="Path to output markdown file (if not provided, writes to stdout)"
     )
     parser.add_argument(
-        '-v', '--verbose',
+        '--science_paper',
         action='store_true',
-        help='Show verbose output and debug information'
+        help='Indicates that the input is a science paper. Parsing optimized for scientific papers.'
     )
     args = parser.parse_args()
 
-    try:
-        # Read input from file or stdin
-        if args.verbose:
-            source = args.input_file or "stdin"
-            print(f"Reading from: {source}", file=sys.stderr)
+    with open(args.ocr_input_file, 'r') as f:
+        markdown_content = f.read()
 
-        markdown_content = read_input(args.input_file)
+    with open(args.headings_input_file, 'r') as f:
+        headings_content = f.read()
 
-        # Process the markdown content
-        processed_content = process_markdown_content(markdown_content, args.verbose)
+    # Process the markdown content
+    if args.science_paper:
+        processed_content = process_science_paper(markdown_content, headings_content)
+    else:
+        processed_content = process_general_paper(markdown_content, headings_content)
 
-        # Write output to file or stdout
-        write_output(processed_content, args.output)
-
-        if args.verbose:
-            destination = args.output or "stdout"
-            print(f"Processing complete. Output written to: {destination}", file=sys.stderr)
-
-        return 0
-
-    except KeyboardInterrupt:
-        print("\nOperation cancelled by user.", file=sys.stderr)
-        return 1
-    except Exception as e:
-        print(f"An error occurred: {e}", file=sys.stderr)
-        return 1
+    # Write output to file or stdout
+    write_output(processed_content, args.output)
 
 
 if __name__ == "__main__":

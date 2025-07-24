@@ -4,7 +4,6 @@ HTML Section Parser - Extracts hierarchical sections from HTML content
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from typing import Dict, List, Any, Optional
 
 
 class HTMLSectionParser:
@@ -13,7 +12,7 @@ class HTMLSectionParser:
     def __init__(self):
         self.heading_tags = {'h1', 'h2', 'h3', 'h4', 'h5', 'h6'}
 
-    def get_heading_level(self, element) -> Optional[int]:
+    def get_heading_level(self, element) -> int | None:
         """Extract heading level from an element."""
         # Standard heading tags
         if element.name in self.heading_tags:
@@ -85,9 +84,9 @@ class HTMLSectionParser:
 
         return None
 
-    def parse_sections(self, html_content: str) -> List[Dict[str, Any]]:
+    def parse_sections(self, html_content: str) -> list[dict[str, object]]:
         """Parse HTML and extract hierarchical sections."""
-        soup = BeautifulSoup(html_content, 'lx')
+        soup = BeautifulSoup(html_content, 'lxml')
 
         # Find all potential heading elements in document order
         headings = []
@@ -105,7 +104,7 @@ class HTMLSectionParser:
         # (not a list), we might need to adjust this based on the specific use case
         return result
 
-    def _build_hierarchy(self, soup, headings: List[tuple]) -> List[Dict[str, Any]]:
+    def _build_hierarchy(self, soup, headings: list[tuple]) -> list[dict[str, object]]:
         """Build hierarchical structure from headings."""
         if not headings:
             return []
