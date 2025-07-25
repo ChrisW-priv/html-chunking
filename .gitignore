@@ -24,3 +24,6 @@ wheels/
 # Marker and custom caches or logs folders
 .marker-cache/
 marker-cache
+.DS_Store
+knowledge
+dark-debris
