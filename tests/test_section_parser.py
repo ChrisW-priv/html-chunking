@@ -6,22 +6,22 @@ from content_extraction.semantic_chunk_html import HTMLSectionParser
 
 
 def load_json(file_path):
-    with open(file_path, "r") as f:
+    with open(file_path, 'r') as f:
         return json.load(f)
 
 
 def read_html(file_path):
-    with open(file_path, "r") as f:
+    with open(file_path, 'r') as f:
         html = f.read()
         print(html)
         return html
 
 
 @pytest.mark.parametrize(
-    "source_filename,expected_result_filename",
+    'source_filename,expected_result_filename',
     [
-        ("example.html", "example.json"),
-        ("example2.html", "example2.json"),
+        ('example.html', 'example.json'),
+        ('example2.html', 'example2.json'),
     ],
 )
 def test_example_html(source_filename, expected_result_filename):

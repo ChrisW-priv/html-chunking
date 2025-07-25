@@ -30,15 +30,21 @@ Examples:
 
 import sys
 import argparse
+import json
+import logging
+
 from content_extraction.common_std_io import read_input, write_output
 from content_extraction.semantic_chunk_html import HTMLSectionParser
-import json
+from .logging_config import setup_logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Extract structured content from HTML documents",
+        description='Extract structured content from HTML documents',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -51,42 +57,42 @@ Examples:
     )
 
     parser.add_argument(
-        "input_file",
-        nargs="?",
-        help="Input HTML file (if not provided, reads from stdin)",
+        'input_file',
+        nargs='?',
+        help='Input HTML file (if not provided, reads from stdin)',
     )
 
     parser.add_argument(
-        "-o",
-        "--output",
-        metavar="FILE",
-        help="Output JSON file (if not provided, writes to stdout)",
+        '-o',
+        '--output',
+        metavar='FILE',
+        help='Output JSON file (if not provided, writes to stdout)',
     )
 
     parser.add_argument(
-        "--pretty",
-        action="store_true",
-        help="Pretty-print JSON output with indentation",
+        '--pretty',
+        action='store_true',
+        help='Pretty-print JSON output with indentation',
     )
 
     parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Show verbose output and debug information",
+        '-v',
+        '--verbose',
+        action='store_true',
+        help='Show verbose output and debug information',
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
 
     args = parser.parse_args()
+    setup_logging(level=logging.DEBUG if args.verbose else logging.INFO)
 
     try:
         # Read input
-        if args.verbose:
-            if args.input_file:
-                print(f"Reading from file: {args.input_file}", file=sys.stderr)
-            else:
-                print("Reading from stdin...", file=sys.stderr)
+        if args.input_file:
+            logger.debug(f'Reading from file: {args.input_file}')
+        else:
+            logger.debug('Reading from stdin...')
 
         html_content = read_input(args.input_file)
 
@@ -97,16 +103,15 @@ Examples:
         # Write output
         write_output(json.dumps(result), args.output)
 
-        if args.verbose:
-            print("Processing completed successfully", file=sys.stderr)
+        logger.debug('Processing completed successfully')
 
     except KeyboardInterrupt:
-        print("\nOperation cancelled by user", file=sys.stderr)
+        logger.warning('Operation cancelled by user')
         return 1
-    except Exception as e:
-        print(f"Unexpected error: {e}", file=sys.stderr)
+    except Exception:
+        logger.error('An unexpected error occurred', exc_info=True)
         return 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

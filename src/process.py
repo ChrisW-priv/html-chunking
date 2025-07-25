@@ -1,15 +1,21 @@
 import argparse
 import sys
+import logging
 
+from content_extraction.logging_config import setup_logging
 from content_extraction.file_handlers import process_file
+
+
+logger = logging.getLogger(__name__)
 
 
 def main():
     """
     Main function to process the input file/URL and generate structured output.
     """
+    setup_logging()
     parser = argparse.ArgumentParser(
-        description="Process various document types (PDF, PPTX, DOCX, MD, HTML, URL) and extract content into a structured HTML format.",
+        description='Process various document types (PDF, PPTX, DOCX, MD, HTML, URL) and extract content into a structured HTML format.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -29,30 +35,25 @@ Examples:
 """,
     )
 
+    parser.add_argument('input_path', help='Path to the input file or a URL to process.')
     parser.add_argument(
-        "input_path", help="Path to the input file or a URL to process."
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        default="output",
+        '-o',
+        '--output',
+        default='output',
         help="Path to the output directory (defaults to 'output').",
     )
     parser.add_argument(
-        "--force-ext",
+        '--force-ext',
         default=None,
         help="Force the handler for a specific file extension (e.g., 'pdf', 'pptx') when auto-detection is ambiguous or incorrect.",
     )
 
     args = parser.parse_args()
 
-    try:
-        process_file(args.input_path, args.output, args.force_ext)
-
-    except Exception as e:
-        print(f"\nAn unexpected error occurred: {e}", file=sys.stderr)
-        return 1
+    logger.info(f'Processing file: {args.input_path}')
+    process_file(args.input_path, args.output, args.force_ext)
+    logger.info('Processing complete.')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

@@ -9,7 +9,7 @@ class TestHTMLSectionParser:
         self.parser = HTMLSectionParser()
 
     @pytest.mark.parametrize(
-        "html_input,expected_output,test_description",
+        'html_input,expected_output,test_description',
         [
             # Basic heading hierarchy
             (
@@ -23,20 +23,20 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Main Title",
-                        "text": "<p>Introduction text.</p>",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Main Title',
+                        'text': '<p>Introduction text.</p>',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Subsection Title",
-                                "text": "<p>Subsection content.</p>",
-                                "level": 2,
-                                "subsections": [],
+                                'title': 'Subsection Title',
+                                'text': '<p>Subsection content.</p>',
+                                'level': 2,
+                                'subsections': [],
                             }
                         ],
                     }
                 ],
-                "basic h1/h2 hierarchy",
+                'basic h1/h2 hierarchy',
             ),
             # ARIA-level headings
             (
@@ -50,20 +50,20 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Main Title",
-                        "text": "<p>Introduction text.</p>",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Main Title',
+                        'text': '<p>Introduction text.</p>',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Subsection Title",
-                                "text": "<p>Subsection content.</p>",
-                                "level": 2,
-                                "subsections": [],
+                                'title': 'Subsection Title',
+                                'text': '<p>Subsection content.</p>',
+                                'level': 2,
+                                'subsections': [],
                             }
                         ],
                     }
                 ],
-                "div elements with role=heading and aria-level",
+                'div elements with role=heading and aria-level',
             ),
             # ARIA-level without role
             (
@@ -77,20 +77,20 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Main Title",
-                        "text": "<p>Introduction text.</p>",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Main Title',
+                        'text': '<p>Introduction text.</p>',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Subsection Title",
-                                "text": "<p>Subsection content.</p>",
-                                "level": 2,
-                                "subsections": [],
+                                'title': 'Subsection Title',
+                                'text': '<p>Subsection content.</p>',
+                                'level': 2,
+                                'subsections': [],
                             }
                         ],
                     }
                 ],
-                "elements with aria-level but no role=heading",
+                'elements with aria-level but no role=heading',
             ),
             # Mixed heading types
             (
@@ -106,27 +106,27 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Main Title",
-                        "text": "<p>Introduction text.</p>",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Main Title',
+                        'text': '<p>Introduction text.</p>',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Subsection Title",
-                                "text": "<p>Subsection content.</p>",
-                                "level": 2,
-                                "subsections": [
+                                'title': 'Subsection Title',
+                                'text': '<p>Subsection content.</p>',
+                                'level': 2,
+                                'subsections': [
                                     {
-                                        "title": "Sub-subsection",
-                                        "text": "<p>Sub-subsection content.</p>",
-                                        "level": 3,
-                                        "subsections": [],
+                                        'title': 'Sub-subsection',
+                                        'text': '<p>Sub-subsection content.</p>',
+                                        'level': 3,
+                                        'subsections': [],
                                     }
                                 ],
                             }
                         ],
                     }
                 ],
-                "mixing standard headings with aria-level headings",
+                'mixing standard headings with aria-level headings',
             ),
             # Multiple top-level sections
             (
@@ -140,19 +140,19 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "First Section",
-                        "text": "<p>First content.</p>",
-                        "level": 1,
-                        "subsections": [],
+                        'title': 'First Section',
+                        'text': '<p>First content.</p>',
+                        'level': 1,
+                        'subsections': [],
                     },
                     {
-                        "title": "Second Section",
-                        "text": "<p>Second content.</p>",
-                        "level": 1,
-                        "subsections": [],
+                        'title': 'Second Section',
+                        'text': '<p>Second content.</p>',
+                        'level': 1,
+                        'subsections': [],
                     },
                 ],
-                "multiple sections at the same level",
+                'multiple sections at the same level',
             ),
             # Complex nesting
             (
@@ -172,39 +172,39 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Chapter 1",
-                        "text": "<p>Chapter intro.</p>",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Chapter 1',
+                        'text': '<p>Chapter intro.</p>',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Section 1.1",
-                                "text": "<p>Section content.</p>",
-                                "level": 2,
-                                "subsections": [
+                                'title': 'Section 1.1',
+                                'text': '<p>Section content.</p>',
+                                'level': 2,
+                                'subsections': [
                                     {
-                                        "title": "Subsection 1.1.1",
-                                        "text": "<p>Subsection content.</p>",
-                                        "level": 3,
-                                        "subsections": [],
+                                        'title': 'Subsection 1.1.1',
+                                        'text': '<p>Subsection content.</p>',
+                                        'level': 3,
+                                        'subsections': [],
                                     }
                                 ],
                             },
                             {
-                                "title": "Section 1.2",
-                                "text": "<p>Another section.</p>",
-                                "level": 2,
-                                "subsections": [],
+                                'title': 'Section 1.2',
+                                'text': '<p>Another section.</p>',
+                                'level': 2,
+                                'subsections': [],
                             },
                         ],
                     },
                     {
-                        "title": "Chapter 2",
-                        "text": "<p>Second chapter.</p>",
-                        "level": 1,
-                        "subsections": [],
+                        'title': 'Chapter 2',
+                        'text': '<p>Second chapter.</p>',
+                        'level': 1,
+                        'subsections': [],
                     },
                 ],
-                "complex nested structure",
+                'complex nested structure',
             ),
             # Empty sections
             (
@@ -217,26 +217,26 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Empty Section",
-                        "text": "",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Empty Section',
+                        'text': '',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Empty Subsection",
-                                "text": "",
-                                "level": 2,
-                                "subsections": [],
+                                'title': 'Empty Subsection',
+                                'text': '',
+                                'level': 2,
+                                'subsections': [],
                             }
                         ],
                     },
                     {
-                        "title": "Another Empty Section",
-                        "text": "",
-                        "level": 1,
-                        "subsections": [],
+                        'title': 'Another Empty Section',
+                        'text': '',
+                        'level': 1,
+                        'subsections': [],
                     },
                 ],
-                "sections with no content",
+                'sections with no content',
             ),
             # No headings
             (
@@ -247,7 +247,7 @@ class TestHTMLSectionParser:
             </div>
             """,
                 [],
-                "HTML with no headings",
+                'HTML with no headings',
             ),
             # Role heading without aria-level
             (
@@ -259,13 +259,13 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Main Title",
-                        "text": "<p>Content here.</p>",
-                        "level": 1,
-                        "subsections": [],
+                        'title': 'Main Title',
+                        'text': '<p>Content here.</p>',
+                        'level': 1,
+                        'subsections': [],
                     }
                 ],
-                "role=heading without aria-level (should default to level 1)",
+                'role=heading without aria-level (should default to level 1)',
             ),
             # Multiple content elements
             (
@@ -281,24 +281,24 @@ class TestHTMLSectionParser:
             """,
                 [
                     {
-                        "title": "Main Title",
-                        "text": "<p>First paragraph.</p><div>Some div content.</div><ul><li>List item</li></ul>",
-                        "level": 1,
-                        "subsections": [
+                        'title': 'Main Title',
+                        'text': '<p>First paragraph.</p><div>Some div content.</div><ul><li>List item</li></ul>',
+                        'level': 1,
+                        'subsections': [
                             {
-                                "title": "Subsection",
-                                "text": "<p>Subsection content.</p>",
-                                "level": 2,
-                                "subsections": [],
+                                'title': 'Subsection',
+                                'text': '<p>Subsection content.</p>',
+                                'level': 2,
+                                'subsections': [],
                             }
                         ],
                     }
                 ],
-                "sections with multiple content elements",
+                'sections with multiple content elements',
             ),
         ],
     )
     def test_parse_sections(self, html_input, expected_output, test_description):
         """Parametrized test for various HTML section parsing scenarios."""
         result = self.parser.parse_sections(html_input)
-        assert result == expected_output, f"Failed test: {test_description}"
+        assert result == expected_output, f'Failed test: {test_description}'
