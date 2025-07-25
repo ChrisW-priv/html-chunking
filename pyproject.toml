@@ -5,12 +5,15 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"content_extraction" = ["process_document.sh"]
+
 [project]
 name = "content_extraction"
-version = "0.2.0"
+version = "0.3.0"
 description = "Project dedicated to content extraction from unstructured files that contain some useful information."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = ["beautifulsoup4>=4.13.4", "lxml>=6.0.0", "python-pptx>=1.0.2"]
 
 [dependency-groups]
