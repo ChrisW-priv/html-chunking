@@ -50,7 +50,7 @@ def process_pdf(file_path: str, output_dir: str):
     """
     logger.info(f'[Processing PDF file] started for: "{file_path}"')
     # This path assumes the script is located at src/scripts/process_document.sh
-    script_path = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'process_document.sh')
+    script_path = os.path.join(os.path.dirname(__file__), 'process_document.sh')
     output_html_path = os.path.join(output_dir, 'index.html')  # Define output_html_path
     logger.debug(f'[Processing PDF file] script path: "{script_path}"; output_html_path: "{output_html_path}"')
 
