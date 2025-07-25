@@ -10,12 +10,13 @@ where = ["src"]
 
 [project]
 name = "content_extraction"
-version = "0.3.1"
+version = "0.3.2"
 description = "Project dedicated to content extraction from unstructured files that contain some useful information."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.13.4",
+    "dspy>=2.6.27",
     "lxml>=6.0.0",
     "python-pptx>=1.0.2",
     "requests>=2.32.4",
@@ -23,9 +24,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "dspy>=2.6.27",
     "jupyterlab>=4.4.5",
-    "mypy>=1.17.0",
     "pre-commit>=4.2.0",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
