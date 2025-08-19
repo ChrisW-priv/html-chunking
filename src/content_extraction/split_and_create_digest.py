@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+from langdetect import detect
 import sys
 import argparse
 import hashlib
@@ -88,6 +88,8 @@ def process_node(node: dict, parent_digest_hash: str | None = None) -> list[dict
     """
     Recursively process a node and its subsections, returning a flat list of nodes.
     """
+    text = node.get('text', '')
+    language = detect(text)
     section_digest = generate_section_digest(node)
     digest_hash = compute_digest_hash(section_digest)
     result = ProcessResultNode(
@@ -95,8 +97,9 @@ def process_node(node: dict, parent_digest_hash: str | None = None) -> list[dict
             'digest_hash': digest_hash,
             'parent_digest_hash': parent_digest_hash,
             'title': node.get('title'),
-            'text': node.get('text'),
+            'text': text,
             'section_digest': section_digest,
+            'language': language,
         }
     )
     result = asdict(result)
