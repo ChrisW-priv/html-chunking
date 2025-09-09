@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import mimetypes
 import logging
+from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
@@ -12,6 +13,7 @@ from content_extraction.extract_from_pptx import extract_content as extract_pptx
 from content_extraction.semantic_chunk_html import HTMLSectionParser
 from content_extraction.common_std_io import write_stream_of_obj
 from content_extraction.split_and_create_digest import process_node
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -236,6 +238,7 @@ def process_file(input_path: str, output_dir: str, force_ext: str = '') -> str:
     Main entry point for processing a file or URL.
     It identifies the file type, runs the appropriate handler, and returns the path to the final processed HTML file.
     """
+    output_dir_path = Path(output_dir)
     os.makedirs(output_dir, exist_ok=True)
     logger.info(f'[Processing File] Retrieving correct parser for "{input_path}"')
     handler = get_handler(input_path, force_ext)
@@ -265,16 +268,29 @@ def process_file(input_path: str, output_dir: str, force_ext: str = '') -> str:
     logger.info('[Processing File] Parsing HTML into sections.')
     parser = HTMLSectionParser()
     parsed_sections = parser.parse_sections(html_content)
+    parsed_sections_output_file = output_dir_path / 'parsed_sections.json'
+    with open(parsed_sections_output_file) as f:
+        f.write(json.dumps(parsed_sections))
 
     logger.info('[Processing File] Splitting parsed sections and creating JSON digest.')
-    jsonl_output_path = os.path.join(output_dir, 'sections.jsonl')
 
     all_nodes = []
     if parsed_sections:
         for section in parsed_sections:
             all_nodes.extend(process_node(section, parent_digest_hash=None))
 
-    write_stream_of_obj(all_nodes, jsonl_output_path)
+    jsonl_output_path = output_dir_path / 'sections.jsonl'
+    write_stream_of_obj(all_nodes, str(jsonl_output_path))
     logger.info(f'[Processing File] Successfully created JSON digest at {jsonl_output_path}')
 
+    logger.info('[Processing File] Starting to save individual chunks.')
+    chunks_path = output_dir_path / 'chunks'
+    os.makedirs(chunks_path, exist_ok=True)
+
+    for node in all_nodes:
+        chunk_path = chunks_path / f'{node["digest_hash"]}.json'
+        with open(chunk_path, 'w') as f:
+            json.dump(node, f)
+
+    logger.info('[Processing File] Successfully saved individual chunks.')
     return final_html_path
