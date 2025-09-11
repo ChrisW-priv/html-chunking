@@ -35,6 +35,7 @@ class ProcessResultNode:
     title: str
     text: str
     section_digest: SectionDigestNode
+    language: str
 
 
 def shorten_text(text: str, max_elements: int = 2, subsections: list[dict] | None = None) -> str:
