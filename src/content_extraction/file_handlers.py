@@ -269,7 +269,7 @@ def process_file(input_path: str, output_dir: str, force_ext: str = '') -> str:
     parser = HTMLSectionParser()
     parsed_sections = parser.parse_sections(html_content)
     parsed_sections_output_file = output_dir_path / 'parsed_sections.json'
-    with open(parsed_sections_output_file) as f:
+    with open(parsed_sections_output_file, 'w') as f:
         f.write(json.dumps(parsed_sections))
 
     logger.info('[Processing File] Splitting parsed sections and creating JSON digest.')
