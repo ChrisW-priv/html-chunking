@@ -1,4 +1,5 @@
 from langdetect import detect
+from langdetect.lang_detect_exception import LangDetectException
 import sys
 import argparse
 import hashlib
@@ -90,7 +91,11 @@ def process_node(node: dict, parent_digest_hash: str | None = None) -> list[dict
     Recursively process a node and its subsections, returning a flat list of nodes.
     """
     text = node.get('text', '')
-    language = detect(text)
+    try:
+        language = detect(text)
+    except LangDetectException:
+        logger.warning(f'Failed to detect language for {text[:128]=}')
+        language = None
     section_digest = generate_section_digest(node)
     digest_hash = compute_digest_hash(section_digest)
     result = ProcessResultNode(
