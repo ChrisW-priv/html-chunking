@@ -1,3 +1,4 @@
+from typing import Any
 from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 import sys
@@ -39,7 +40,7 @@ class ProcessResultNode:
     language: str
 
 
-def shorten_text(text: str, max_elements: int = 2, subsections: list[dict] | None = None) -> str:
+def shorten_text(text: str, max_elements: int = 2, subsections: list[dict[str, Any]] | None = None) -> str:
     """Shorten text by splitting on lines and keeping at most max_elements, appending '...' if truncated."""
     if max_elements == -1:
         return text
@@ -86,18 +87,19 @@ def compute_digest_hash(section_digest: SectionDigestNode) -> str:
     return h.hexdigest()
 
 
-def process_node(node: dict, parent_digest_hash: str | None = None) -> list[dict]:
+def process_node(node: dict, parent_digest_hash: str | None = None) -> list[dict[str, str | dict[str, Any]]]:
     """
     Recursively process a node and its subsections, returning a flat list of nodes.
     """
     text = node.get('text', '')
-    try:
-        language = detect(text)
-    except LangDetectException:
-        logger.warning(f'Failed to detect language for {text[:128]=}')
-        language = None
     section_digest = generate_section_digest(node)
     digest_hash = compute_digest_hash(section_digest)
+    try:
+        digest_as_text = str(section_digest)
+        language = detect(digest_as_text)
+    except LangDetectException:
+        logger.warning(f'Failed to detect language for {digest_as_text[:128]=}')
+        language = None
     result = ProcessResultNode(
         **{
             'digest_hash': digest_hash,

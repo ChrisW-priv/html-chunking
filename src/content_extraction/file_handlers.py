@@ -5,13 +5,13 @@ import tempfile
 import mimetypes
 import logging
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
 
 from content_extraction.extract_from_pptx import extract_content as extract_pptx_content
 from content_extraction.semantic_chunk_html import HTMLSectionParser
-from content_extraction.common_std_io import write_stream_of_obj
 from content_extraction.split_and_create_digest import process_node
 import json
 
@@ -233,7 +233,7 @@ def get_handler(input_path: str, force_ext: str = ''):
     return lambda output_dir: handler_func(input_path, output_dir)
 
 
-def process_file(input_path: str, output_dir: str, force_ext: str = '') -> str:
+def process_file(input_path: str, output_dir: str, force_ext: str = '') -> list[dict[str, str | dict[str, Any]]]:
     """
     Main entry point for processing a file or URL.
     It identifies the file type, runs the appropriate handler, and returns the path to the final processed HTML file.
@@ -270,27 +270,9 @@ def process_file(input_path: str, output_dir: str, force_ext: str = '') -> str:
     parsed_sections = parser.parse_sections(html_content)
     parsed_sections_output_file = output_dir_path / 'parsed_sections.json'
     with open(parsed_sections_output_file, 'w') as f:
-        f.write(json.dumps(parsed_sections))
+        json.dump(parsed_sections, f)
 
-    logger.info('[Processing File] Splitting parsed sections and creating JSON digest.')
+    if not parsed_sections:
+        raise ValueError('No parsed sections found')
 
-    all_nodes = []
-    if parsed_sections:
-        for section in parsed_sections:
-            all_nodes.extend(process_node(section, parent_digest_hash=None))
-
-    jsonl_output_path = output_dir_path / 'sections.jsonl'
-    write_stream_of_obj(all_nodes, str(jsonl_output_path))
-    logger.info(f'[Processing File] Successfully created JSON digest at {jsonl_output_path}')
-
-    logger.info('[Processing File] Starting to save individual chunks.')
-    chunks_path = output_dir_path / 'chunks'
-    os.makedirs(chunks_path, exist_ok=True)
-
-    for node in all_nodes:
-        chunk_path = chunks_path / f'{node["digest_hash"]}.json'
-        with open(chunk_path, 'w') as f:
-            json.dump(node, f)
-
-    logger.info('[Processing File] Successfully saved individual chunks.')
-    return final_html_path
+    return [node for section in parsed_sections for node in process_node(section, parent_digest_hash=None)]
